@@ -39,6 +39,8 @@
 
 typedef enum {
     PARSE_STATE_WAITING_KEY,
+    PARSE_STATE_COMMENT_START,
+    PARSE_STATE_COMMENT,
     PARSE_STATE_KEY,
     PARSE_STATE_KEY_DONE,
     PARSE_STATE_WAITING_VALUE,
@@ -52,6 +54,12 @@ typedef enum {
     PARSE_STATE_STR_ESC,
     PARSE_STATE_STR_UNI
 } parse_state_string_t;
+
+typedef enum {
+    PARSE_COMMENT_SINGLE = 0,
+    PARSE_COMMENT_MULTI,
+
+} parse_comment_style_t;
 
 int sjson_init(sjson_ctx_t* ctx, char* buf, uint16_t len)
 {
@@ -69,6 +77,8 @@ int sjson_init(sjson_ctx_t* ctx, char* buf, uint16_t len)
 static const char* get_state_str(uint8_t s) {
     switch (s) {
     case PARSE_STATE_WAITING_KEY: return "WAITING_KEY";
+    case PARSE_STATE_COMMENT_START: return "COMMENT_START";
+    case PARSE_STATE_COMMENT: return "COMMENT";
     case PARSE_STATE_KEY: return "KEY";
     case PARSE_STATE_KEY_DONE: return "KEY_DONE";
     case PARSE_STATE_WAITING_VALUE: return "WAITING_VALUE";
@@ -370,6 +380,9 @@ int sjson_parse(sjson_ctx_t* ctx, const char* buf, int len)
                 case '\n':
                 case ' ':
                     break;
+                case '/':
+                    transition(ctx, PARSE_STATE_COMMENT_START);
+                    break;
                 case '{':
                     ctx->depth++;
                     break;
@@ -386,6 +399,53 @@ int sjson_parse(sjson_ctx_t* ctx, const char* buf, int len)
                 default:
                     /* something unexpected. */
                     res = SJSON_STATUS_UNEXPECTED_INPUT;
+                    break;
+                }
+                break;
+            }
+            case PARSE_STATE_COMMENT_START:
+            {
+                ctx->comment_style = PARSE_COMMENT_SINGLE;
+                switch (c) {
+                case '*':
+                    ctx->comment_style = PARSE_COMMENT_MULTI;
+                    ctx->test_multi_end = 0;
+                    /* fall-through */
+                case '/':
+                    /* ok - parsing comment */
+                    transition(ctx, PARSE_STATE_COMMENT);
+                    break;
+                default:
+                    /* not ok - parsing error */
+                    res = SJSON_STATUS_UNEXPECTED_INPUT;
+                    break;
+                }
+                break;
+            }
+            case PARSE_STATE_COMMENT:
+            {
+                switch (c) {
+                case '\r':
+                case '\n':
+                    if (ctx->comment_style == PARSE_COMMENT_SINGLE) {
+                        /* end of // style */
+                        transition(ctx, PARSE_STATE_WAITING_KEY);
+                    }
+                    break;
+                case '*':
+                    /* might be end of multi-line */
+                    if (ctx->comment_style == PARSE_COMMENT_MULTI) {
+                        ctx->test_multi_end = 1;
+                    }
+                    break;
+                case '/':
+                    if (ctx->test_multi_end == 1) {
+                        transition(ctx, PARSE_STATE_WAITING_KEY);
+                    }
+                    break;
+                default:
+                    ctx->test_multi_end = 0;
+                    /* consume rest */
                     break;
                 }
                 break;

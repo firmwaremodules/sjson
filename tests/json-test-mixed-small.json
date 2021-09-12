@@ -1,17 +1,25 @@
+// Comment before JSON
 {
+    // This is commented JSON
+    // Useful for configuration files
     "Image": {
-        "Width": 800,
+        "Width": 800, /* Comment about width */
         "Height": 600,
         "Title": "View from 15th Floor",
         "Thumbnail": {
             "Url": "http://www.example.com/image/481989943",
-            "Height": 125,
+            "Height": 125, // comment about height
             "Width": 100
         },
+        /* comments */
         "Animated": false,
+        /*
+            Comment block
+            // comments within block
+        */
         "IDs": [ 116, 943, 234, 38793 ],
         "Escaped": ".\".\/.\\.\b.\f.\r.\n.\t.",
         "Unicode": "Unicode Omega 234:\u00EA",
-        "IDstrings" : [ "id1", "id2", "id\t3"]
+        "IDstrings": [ "id1", "id2", "id\t3" ]
     }
 }

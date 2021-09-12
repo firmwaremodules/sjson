@@ -1,12 +1,14 @@
 ## SJSON: The Streaming JSON Parser
 
 This parser parses JSON from a stream of bytes, eliminating the need to read an entire JSON object
-into a pre-allocated buffer before parsing.  This is the most-resource efficient way to handle JSON.
-It is designed to run on embedded systems containing MCUs.
+into a pre-allocated buffer before parsing.  This is the most resource-efficient way to handle JSON.
 
-Potential uses include parsing long and unknown length JSON response structures
-from HTTP queries and handling large JSON configuration files.  
-This parser will handle arbitrary length JSON with a fixed buffer requirement.
+It is designed to run on MCUs in embedded systems and the parser handles both single and multi-line comment styles embedded in the JSON!
+
+Potential uses include parsing long or unknown length JSON response structures
+from HTTP queries and handling JSON configuration files.
+
+In a nutshell, this parser will handle arbitrary length JSON with a fixed and minimal RAM buffer requirement.
 
 
 ### Memory Usage
@@ -67,7 +69,7 @@ At this time arrays of objects are *not* supported and will result in a returned
 
 
 
-This parser is inspired by on the excellent [JSMN](https://github.com/zserge/jsmn) JSON parser by Serge Zaitsev.
+This parser is inspired by the excellent [JSMN](https://github.com/zserge/jsmn) JSON parser by Serge Zaitsev.
 Unlike JSMN, SJSON does not require a pre-allocated token stack nor input buffer to host the full JSON before parsing.
 
 ### Example
@@ -102,7 +104,9 @@ printf("Done: %s chars:%d keys:%d strings:%d prims:%d calls:%d\n",
 
 ```
 
+### Tests
 
+There is a reference json file `tests/json-test-mixed-small.json` demonstrating the capabilities of this parser along with a test runner `json-tests.c` demonstrating how to use the SJSON parser.
 
 
 

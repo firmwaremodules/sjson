@@ -87,12 +87,20 @@ typedef struct
     
     /* position in the buffer */
     uint16_t pos;
-    uint8_t str_uni_cnt; /* counting unicode chars */
+    union {
+        uint8_t str_uni_cnt; /* counting unicode chars */
+        uint8_t test_multi_end; /* test for end of comment block */
+    };
+
     uint8_t is_array; /* flag for being in an array */
     int8_t depth; /* depth within JSON (1 - first level) */
 
     uint8_t parse_state;
-    uint8_t parse_state_str;
+
+    union {
+        uint8_t parse_state_str;
+        uint8_t comment_style;
+    };
 
     /* Active value handler */
     sjson_cb_handler_t value_handler;
