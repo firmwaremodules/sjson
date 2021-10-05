@@ -61,13 +61,17 @@ typedef enum {
 
 } parse_comment_style_t;
 
-int sjson_init(sjson_ctx_t* ctx, char* buf, uint16_t len)
+int sjson_init(sjson_ctx_t* ctx, char* buf, uint16_t len, const sjson_cb_t* callbacks)
 {
-    if (ctx && buf && len > 0) {
-        ctx->buf = buf;
-        ctx->buf_len = len;
-        sjson_reset(ctx);
-        return SJSON_STATUS_OK;
+    if (ctx) {
+        memset(ctx, 0, sizeof(*ctx));
+        if (buf && len > 0 && callbacks) {
+            ctx->buf = buf;
+            ctx->buf_len = len;
+            ctx->callbacks = callbacks;
+            sjson_reset(ctx);
+            return SJSON_STATUS_OK;
+        }
     }
     return SJSON_STATUS_INVALID_ARGS;
 }
@@ -116,7 +120,7 @@ static int match_key(sjson_ctx_t* ctx)
     const sjson_cb_t* cb;
 
     ctx->value_handler = 0;
-    for (cb = sjson_callbacks; cb->key != 0; cb++) {
+    for (cb = ctx->callbacks; cb->key != 0; cb++) {
 #if SJSON_DEBUG
         printf("matching: %s -> %s\n", cb->key, ctx->buf);
 #endif
@@ -338,7 +342,7 @@ int sjson_parse(sjson_ctx_t* ctx, const char* buf, int len)
 {
     int res = SJSON_STATUS_INVALID_ARGS;
 
-    if (ctx && buf) {
+    if (ctx && buf && ctx->buf && ctx->callbacks) {
 
         res = SJSON_STATUS_OK;
 

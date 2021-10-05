@@ -1,6 +1,6 @@
 ## SJSON: The Streaming JSON Parser
 
-This parser parses JSON from a stream of bytes, eliminating the need to read an entire JSON object
+This callback-based parser parses JSON from a stream of bytes, eliminating the need to read an entire JSON object
 into a pre-allocated buffer before parsing.  This is the most resource-efficient way to handle JSON.
 
 It is designed to run on MCUs in embedded systems and the parser handles both single and multi-line comment styles embedded in the JSON!
@@ -22,20 +22,21 @@ on-demand on the stack in many cases.
 ### Setup
 
 The user creates an array of `sjson_cb_t` structures, each defining a key token to match against and a callback function to
-invoke with the value associated with the matched token.  This array must be bound to `const sjson_cb_t sjson_callbacks[]`
-and **must contain a null-terminating entry**.
+invoke with the value associated with the matched token.  This array **must contain a null-terminating entry**.
+
+The array is passed to `sjson_init()`.
 
 Example:
 
 ```
-const sjson_cb_t sjson_callbacks[] = 
+const sjson_cb_t my_sjson_callbacks[] = 
     { "key1", my_key1_value_handler }, /* match key value "key1" and invoke handler my_key1_value_handler() for it */
     // more handlers,
     { 0 } // null-terminator
 };
 ```
 
-The callback array is bound at link time and is thus able to be stored in flash instead of RAM.
+The callback array is bound at run time so that the parser may be reconfigured to handle a variety of input streams.
 
 The parser context structure must be initialized before use:
 
@@ -43,7 +44,7 @@ The parser context structure must be initialized before use:
     sjson_ctx_t ctx;
     char my_token_buf[64]; /* This is the only memory required to parse arbitrary length JSON */
 
-    sjson_init(&ctx, my_token_buf, sizeof(my_token_buf));
+    sjson_init(&ctx, my_token_buf, sizeof(my_token_buf), my_sjson_callbacks);
 ```
 
 ## Parsing
@@ -83,7 +84,7 @@ Each invocation of `sjson_parse()` may yield multiple callback invocations depen
 sjson_ctx_t ctx;
 char my_token_buf[64]; /* handle tokens up to 63 characters in length */
 
-sjson_init(&ctx, my_token_buf, sizeof(my_token_buf));
+sjson_init(&ctx, my_token_buf, sizeof(my_token_buf), my_sjson_callbacks);
 
 char file_buf[32]; /* read file in chunks of 32 bytes or less */
 FILE* fid = fopen("config.json", "r");

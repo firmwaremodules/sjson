@@ -107,24 +107,28 @@ typedef struct
 
     sjson_stats_t stats;
 
+    /*
+    * Run-time linkage to user token match value handler callbacks array.
+    * This array is read-only and may be located in flash.
+    * 
+    * The user can re-configure the parser for different JSON payloads.
+    *
+    * **There must be a null key record at the end.**
+    *
+    * Example:
+    *
+    *    const sjson_cb_t my_sjson_callbacks[] = {
+    *        { "key1", my_key1_value_handler },
+    *        // more handlers,
+    *        { 0 }
+    *    };
+    */
+    const sjson_cb_t* callbacks;
+
 } sjson_ctx_t;
 
 
-/* 
- * Build-time linkage to user token match value handler callbacks array.
- * This array is read-only to be located in flash.  
- * 
- * **There must be a null key record at the end.**
- * 
- * Example:
- * 
- *    const sjson_cb_t sjson_callbacks[] = {
- *        { "key1", my_key1_value_handler },
- *        // more handlers,
- *        { 0 }
- *    };
- */
-extern const sjson_cb_t sjson_callbacks[];
+
 
 /* 
  * Init SJSON context with buffer.
@@ -136,8 +140,9 @@ extern const sjson_cb_t sjson_callbacks[];
  * @param ctx - SJSON context structure.
  * @param buf - user token buffer. 
  * @param len - user token buffer length.
+ * @param callbacks - user token callbacks array **must be null-terminated**.
  */
-int sjson_init(sjson_ctx_t* ctx, char* buf, uint16_t len);
+int sjson_init(sjson_ctx_t* ctx, char* buf, uint16_t len, const sjson_cb_t* callbacks);
 
 /*
 * Parse the buffer for JSON.

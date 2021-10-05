@@ -187,7 +187,8 @@ int main(int argc, char **argv)
     int res = sjson_init(
         &ctx,
         malloc(SJSON_TOKEN_BUF_SIZE),
-        SJSON_TOKEN_BUF_SIZE);
+        SJSON_TOKEN_BUF_SIZE, 
+        sjson_callbacks);
 
     if (res != SJSON_STATUS_OK) {
         printf("sjson_init() error %d\n", res);
@@ -257,7 +258,7 @@ int main(int argc, char **argv)
         sjson_ctx_t ctx;
         char my_token_buf[64]; /* handle tokens up to 63 characters in length */
 
-        sjson_init(&ctx, my_token_buf, sizeof(my_token_buf));
+        sjson_init(&ctx, my_token_buf, sizeof(my_token_buf), sjson_callbacks);
 
         char file_buf[32]; /* read file in chunks of 32 bytes or less */
         FILE* fid = fopen(argv[1], "r");
