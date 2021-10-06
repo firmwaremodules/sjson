@@ -246,7 +246,8 @@ int main(int argc, char **argv)
             printf("with error: %s\n", sjson_status_to_str(status));
         }
 
-        printf("-- chars:%d keys:%d strings:%d prims:%d calls:%d\n",
+        printf("-- overall:%s chars:%d keys:%d strings:%d prims:%d calls:%d\n",
+            sjson_status_to_str(ctx.stats.status),
             ctx.stats.char_count,
             ctx.stats.num_keys,
             ctx.stats.num_strings,
@@ -278,8 +279,9 @@ int main(int argc, char **argv)
             status = sjson_parse(&ctx, file_buf, len);
         } while (len > 0 && status >= 0);
 
-        printf("Done: %s chars:%d keys:%d strings:%d prims:%d calls:%d\n",
+        printf("Done: %s overall:%s chars:%d keys:%d strings:%d prims:%d calls:%d\n",
             sjson_status_to_str(status),
+            sjson_status_to_str(ctx.stats.status),
             ctx.stats.char_count,
             ctx.stats.num_keys,
             ctx.stats.num_strings,

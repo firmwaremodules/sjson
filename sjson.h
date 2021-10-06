@@ -76,6 +76,7 @@ typedef struct
     uint16_t num_strings;
     uint16_t num_primitives;
     uint16_t num_callbacks;
+    int status; /* overall status - holding most negative value detected */
 
 } sjson_stats_t;
 

@@ -666,6 +666,9 @@ int sjson_parse(sjson_ctx_t* ctx, const char* buf, int len)
                 break;
             }
         }
+
+        /* Update overall parsing status statistic */
+        ctx->stats.status = res < ctx->stats.status ? res : ctx->stats.status;
     }
 
     return res;
