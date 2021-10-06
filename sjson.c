@@ -61,6 +61,10 @@ typedef enum {
 
 } parse_comment_style_t;
 
+#define SET_ARRAY()    do { (ctx->is_array |=  ((uint32_t)1 << (ctx->depth))); } while(0)
+#define CLEAR_ARRAY()  do { (ctx->is_array &= ~((uint32_t)1 << (ctx->depth))); } while(0)
+#define IS_ARRAY()          (ctx->is_array &   ((uint32_t)1 << (ctx->depth)))
+
 int sjson_init(sjson_ctx_t* ctx, char* buf, uint16_t len, const sjson_cb_t* callbacks)
 {
     if (ctx) {
@@ -357,7 +361,7 @@ int sjson_parse(sjson_ctx_t* ctx, const char* buf, int len)
             char c = buf[pc++];
 
 #if SJSON_DEBUG
-            printf("run: %d %d %3d %c %s %d %d %d %d\n",
+            printf("run: %d %d %3d %c %s %d %d %d %d %08x\n",
                 len,
                 pc,
                 c,
@@ -366,6 +370,7 @@ int sjson_parse(sjson_ctx_t* ctx, const char* buf, int len)
                 ctx->parse_state_str,
                 ctx->pos,
                 ctx->depth,
+                IS_ARRAY() > 0 ? 1 : 0,
                 ctx->is_array
             );
 #endif
@@ -399,9 +404,15 @@ int sjson_parse(sjson_ctx_t* ctx, const char* buf, int len)
                     if (ctx->depth > 0) {
                         /* allow closing brace if within object */
                         ctx->depth--;
-                        break;
+                        if (IS_ARRAY()) {
+                            /* If previous level is array, wait for value */
+                            transition(ctx, PARSE_STATE_WAITING_VALUE);
+                        }
                     }
-                    /* fall-through */
+                    else {
+                        res = SJSON_STATUS_UNEXPECTED_INPUT;
+                    }
+                    break;
                 default:
                     /* something unexpected. */
                     res = SJSON_STATUS_UNEXPECTED_INPUT;
@@ -507,11 +518,23 @@ int sjson_parse(sjson_ctx_t* ctx, const char* buf, int len)
                     /* consume, keep looking */
                     break;
                 case '[':
-                    ctx->is_array = 1;
+                    ctx->depth++;
+                    SET_ARRAY();
                     break;
                 case '{':
                     ctx->depth++;
                     transition(ctx, PARSE_STATE_WAITING_KEY);
+                    break;
+                case ']':
+                    if (IS_ARRAY()) {
+                        /* Allow closing the array */
+                        CLEAR_ARRAY();
+                        ctx->depth--;
+                        transition(ctx, PARSE_STATE_WAITING_KEY);
+                    }
+                    else {
+                        res = SJSON_STATUS_UNEXPECTED_INPUT;
+                    }
                     break;
                 case ':':
                     res = SJSON_STATUS_UNEXPECTED_INPUT;
@@ -540,11 +563,23 @@ int sjson_parse(sjson_ctx_t* ctx, const char* buf, int len)
             {
                 switch (c) {
                 case ']':
-                    ctx->is_array = 0;
-                    transition(ctx, PARSE_STATE_WAITING_KEY);
+                    if (IS_ARRAY()) {
+                        CLEAR_ARRAY();
+                        ctx->depth--;
+                        if (IS_ARRAY()) {
+                            /* Look for next value in this array */
+                            transition(ctx, PARSE_STATE_WAITING_VALUE);
+                        }
+                        else {
+                            transition(ctx, PARSE_STATE_WAITING_KEY);
+                        }
+                    }
+                    else {
+                        res = SJSON_STATUS_UNEXPECTED_INPUT;
+                    }
                     break;
                 case ',':
-                    if (ctx->is_array) {
+                    if (IS_ARRAY()) {
                         /* Look for next value in this array */
                         transition(ctx, PARSE_STATE_WAITING_VALUE);
                     }
@@ -553,9 +588,15 @@ int sjson_parse(sjson_ctx_t* ctx, const char* buf, int len)
                     }
                     break;
                 case '}':
-                    /* End the string token, resume looking for keys */
+                    /* End the string token, resume looking for keys or values */
                     ctx->depth--;
-                    transition(ctx, PARSE_STATE_WAITING_KEY);
+                    if (IS_ARRAY()) {
+                        /* Look for next value in this array */
+                        transition(ctx, PARSE_STATE_WAITING_VALUE);
+                    }
+                    else {
+                        transition(ctx, PARSE_STATE_WAITING_KEY);
+                    }
                     break;
                 case '\t':
                 case '\r':
@@ -581,16 +622,30 @@ int sjson_parse(sjson_ctx_t* ctx, const char* buf, int len)
                     transition(ctx, PARSE_STATE_WAITING_KEY);
                     switch (c) {
                     case ']':
-                        ctx->is_array = 0;
+                        if (IS_ARRAY()) {
+                            CLEAR_ARRAY();
+                            ctx->depth--;
+                            if (IS_ARRAY()) {
+                                /* Look for next value in this array */
+                                transition(ctx, PARSE_STATE_WAITING_VALUE);
+                            }
+                        }
+                        else {
+                            res = SJSON_STATUS_UNEXPECTED_INPUT;
+                        }
                         break;
                     case ',':
-                        if (ctx->is_array) {
+                        if (IS_ARRAY()) {
                             /* Look for next value in this array */
                             transition(ctx, PARSE_STATE_WAITING_VALUE);
                         }
                         break;
                     case '}':
                         ctx->depth--;
+                        if (IS_ARRAY()) {
+                            /* Look for next value in this array */
+                            transition(ctx, PARSE_STATE_WAITING_VALUE);
+                        }
                         break;
                     default:
                         /* Other whitespace: wait for proper finish */

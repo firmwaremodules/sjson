@@ -66,10 +66,19 @@ const sjson_cb_t sjson_callbacks[] = {
     { "Thumbnail", generic_handler},
     { "Url", generic_handler},
     { "Animated", generic_handler},
+    { "null value", generic_handler},
     { "IDs", generic_handler},
     { "Escaped", generic_handler},
     { "Unicode", generic_handler},
     { "IDstrings", generic_handler},
+    { "Array of objects", generic_handler },
+    { "obj1", generic_handler },
+    { "obj2", generic_handler },
+    { "Array of objects of arrays", generic_handler },
+    { "obj1b", generic_handler },
+    { "obj2b", generic_handler },
+    { "multi-dimensional arrays", generic_handler },
+    { "multi-dimensional arrays2", generic_handler },
     { 0 }
 };
 

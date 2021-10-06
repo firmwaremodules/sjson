@@ -53,7 +53,8 @@ typedef enum {
  * @param buf - The parser's JSON token buffer containing the parsed value.
  * @param len - Number of characters in the parsed value token (excluding \0).
  * @param type - Type of the token parsed.
- * @param depth - Depth within the JSON object that the token was found in.  1 - first level, 2 - second level, etc.
+ * @param depth - Depth within the JSON object or array that the token was found in.  1 - first level, 2 - second level, etc.
+ *                Objects and arrays are treated the same so each '{' or '[' increases the depth.
  */
 typedef int (*sjson_cb_handler_t)(const char* buf, uint16_t len, sjson_type_t type, uint8_t depth);
 
@@ -92,7 +93,7 @@ typedef struct
         uint8_t test_multi_end; /* test for end of comment block */
     };
 
-    uint8_t is_array; /* flag for being in an array */
+    uint32_t is_array; /* flag for being in an array at depth = bit position (a kind of stack) */
     int8_t depth; /* depth within JSON (1 - first level) */
 
     uint8_t parse_state;

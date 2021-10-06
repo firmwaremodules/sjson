@@ -66,9 +66,6 @@ For example, a JSON key: value pair primitive defined like this:  `"ram" : 8192`
 in their "ram" handler with atoi(), for example.
 
 This parser also handles arrays of values by invoking the handler for each value in the array. 
-At this time arrays of objects are *not* supported and will result in a returned error.
-
-
 
 This parser is inspired by the excellent [JSMN](https://github.com/zserge/jsmn) JSON parser by Serge Zaitsev.
 Unlike JSMN, SJSON does not require a pre-allocated token stack nor input buffer to host the full JSON before parsing.
@@ -104,6 +101,10 @@ printf("Done: %s chars:%d keys:%d strings:%d prims:%d calls:%d\n",
     ctx.stats.num_callbacks);
 
 ```
+
+### Limitations
+
+* SJSON can parse objects and arrays up to 31 deep.  Beyond that the parser depth level will get out of sync and will encounter unexpected input.
 
 ### Tests
 

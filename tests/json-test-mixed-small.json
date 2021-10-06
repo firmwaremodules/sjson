@@ -19,6 +19,19 @@
             // comments within block
         */
         "IDs": [ 116, 943, 234, 38793 ],
+        "Array of objects": [
+            { "obj1": 444, "obj3":1,"obj4":0 },
+            { "obj2": "nice summer day" }
+        ],
+        "Array of objects of arrays": [
+            { "obj1b": [ 777, 888 ] },
+            { "obj2b": [ "rainy day", "winter day" ] }
+        ],
+        "multi-dimensional arrays": [
+            [ 1, 2, 3, 4 ],
+            [ "5", "6", "7", "8" ]
+        ],
+        "multi-dimensional arrays2": [["mdafield1",2345]],
         "Escaped": ".\".\/.\\.\b.\f.\r.\n.\t.",
         "Unicode": "Unicode Omega 234:\u00EA",
         "IDstrings": [ "id1", "id2", "id\t3" ]
