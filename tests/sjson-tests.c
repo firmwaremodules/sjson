@@ -54,7 +54,7 @@ static int image_handler(const char* buf, uint16_t len, sjson_type_t type, uint8
 
 static int generic_handler(const char* buf, uint16_t len, sjson_type_t type, uint8_t depth)
 {
-    printf("[HANDLER] [%s] depth:%d type:%d\n", buf, depth, type);
+    printf("[HANDLER] [%s] len:%d depth:%d type:%d\n", buf, len, depth, type);
     return SJSON_STATUS_OK;
 }
 

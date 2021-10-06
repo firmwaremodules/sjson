@@ -140,10 +140,12 @@ static int invoke_handler(sjson_ctx_t* ctx, sjson_type_t type)
 {
     int res = SJSON_STATUS_OK;
     if (ctx->value_handler) {
+        /* Required to exclude terminating '/0' */
+        uint16_t len = ctx->pos > 0 ? ctx->pos - 1 : 0;
 #if SJSON_DEBUG
-        printf("invoke handler: %p buf:%p pos:%d type:%d\n", ctx->value_handler, ctx->buf, ctx->pos, type);
+        printf("invoke handler: %p buf:%p pos:%d type:%d\n", ctx->value_handler, ctx->buf, len, type);
 #endif
-        res = ctx->value_handler(ctx->buf, ctx->pos, type, ctx->depth);
+        res = ctx->value_handler(ctx->buf, len, type, ctx->depth);
         ctx->stats.num_callbacks++;
     }
     return res;

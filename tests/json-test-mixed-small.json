@@ -13,6 +13,7 @@
         },
         /* comments */
         "Animated": false,
+        "null value": null,
         /*
             Comment block
             // comments within block
